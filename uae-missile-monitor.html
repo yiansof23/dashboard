@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UAE - Iran Strike Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#08080e;color:#e2e2ea;font-family:system-ui,sans-serif;padding:20px 16px;min-height:100vh}
+.wrap{max-width:920px;margin:0 auto}
+.header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+h1{font-size:17px;letter-spacing:3px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-weight:800}
+h1 .red{color:#f87171}
+.subtitle{font-size:10.5px;color:#5a5a6a;font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-top:4px}
+.status{font-size:10px;color:#4ade80;font-family:'JetBrains Mono',monospace;letter-spacing:1px;display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.dot{width:6px;height:6px;border-radius:50%;background:#4ade80;display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.updated{font-size:10px;color:#5a5a6a;font-family:'JetBrains Mono',monospace;margin-top:2px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.full{grid-column:1/-1}
+.panel{background:#0f0f18;border:1px solid #1e1e2e;border-radius:6px;padding:16px 20px;position:relative;overflow:hidden}
+.panel-line{position:absolute;top:0;left:0;right:0;height:2px}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.panel-title{font-size:11.5px;letter-spacing:2.5px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-weight:600}
+.hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.hbar-label{width:56px;font-size:10px;color:#8a8a9a;font-family:'JetBrains Mono',monospace;text-align:right;flex-shrink:0}
+.hbar-track{flex:1;height:26px;display:flex;align-items:center}
+.hbar-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px;transition:width .8s ease;position:relative}
+.hbar-val-out{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:#e2e2ea;margin-left:8px;flex-shrink:0}
+.hbar-val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:#0a0a12}
+.hbar-pct{width:50px;font-size:10px;font-family:'JetBrains Mono',monospace;text-align:right;flex-shrink:0}
+.pct-green{color:#4ade80}.pct-red{color:#f87171}
+.decline{margin-top:10px;font-size:11px;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:6px;line-height:1.5}
+.decline-warn{color:#f59e0b}
+.salvo-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px;min-width:100px;transition:width .8s ease}
+.salvo-label{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10px;color:#0a0a12}
+.note{margin:12px 0 0;font-size:10px;color:#8a8a9a;line-height:1.5;font-family:'JetBrains Mono',monospace}
+.vbar-container{display:flex;align-items:flex-end;justify-content:space-around;height:200px;padding:0 4px}
+.vbar-col{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1}
+.vbar-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#e2e2ea}
+.vbar-bar{width:38px;border-radius:4px 4px 0 0;transition:height .8s ease}
+.vbar-date{font-size:9px;color:#8a8a9a;font-family:'JetBrains Mono',monospace}
+.analysis{margin:14px 0 0;font-size:11px;color:#8a8a9a;line-height:1.6}
+.stats-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;padding:8px 0}
+.stat{text-align:center;padding:6px 0}
+.stat-val{font-size:24px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+.stat-label{font-size:9px;color:#8a8a9a;margin-top:4px;letter-spacing:1px;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.stat-sub{font-size:9px;color:#5a5a6a;margin-top:2px;font-family:'JetBrains Mono',monospace}
+.src-toggle{cursor:pointer;font-size:12px;color:#8a8a9a;font-family:'JetBrains Mono',monospace;user-select:none}
+.src-grid{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.src-card{padding:8px 12px;background:#14141e;border-radius:4px;border:1px solid #1a1a28;font-size:11px;font-family:'JetBrains Mono',monospace}
+.src-name{color:#e2e2ea;font-weight:600}
+.src-meta{color:#5a5a6a;font-size:10px;margin-top:2px}
+.src-url{color:#38bdf8}
+.methodology{margin:12px 0 0;font-size:10px;color:#5a5a6a;line-height:1.5;font-family:'JetBrains Mono',monospace}
+.footer{text-align:center;margin-top:16px}
+.footer p{font-size:9.5px;color:#2a2a3a;font-family:'JetBrains Mono',monospace;letter-spacing:1.5px}
+#loading{text-align:center;padding:60px;font-family:'JetBrains Mono',monospace;color:#5a5a6a}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(3,1fr)}.src-grid{grid-template-columns:1fr}.vbar-bar{width:26px}.hbar-label{width:48px;font-size:9px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loading">Loading data&#8230;</div>
+  <div id="app" style="display:none">
+    <div class="header">
+      <div>
+        <h1><span class="red">UAE</span> &#8212; Iran Strike Tracker</h1>
+        <p class="subtitle">IRANIAN RETALIATORY STRIKES &#8226; FEB 28 &#8211; ONGOING &#8226; SOURCE: UAE MOD OFFICIAL</p>
+      </div>
+      <div style="text-align:right">
+        <div class="status"><span class="dot"></span> CONFLICT ACTIVE &#8226; DAY 9</div>
+        <div class="updated" id="updatedTime"></div>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-line" style="background:#f87171"></div>
+        <div class="panel-header"><h3 class="panel-title" style="color:#f87171">Ballistic Missiles &#8212; Daily Rate</h3></div>
+        <div id="ballisticBars"></div>
+        <div class="decline decline-warn" id="declineStat"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-line" style="background:#f59e0b"></div>
+        <div class="panel-header"><h3 class="panel-title" style="color:#f59e0b">Max Salvo Size Per Barrage (Est.)</h3></div>
+        <div id="salvoBars"></div>
+        <p class="note">Below ~20 simultaneous missiles, massed saturation attacks become impossible against layered defenses.</p>
+      </div>
+      <div class="full panel">
+        <div class="panel-line" style="background:#c084fc"></div>
+        <div class="panel-header">
+          <h3 class="panel-title" style="color:#c084fc">Drone Volume &#8212; Sustained Harassment</h3>
+        </div>
+        <div class="vbar-container" id="droneBars"></div>
+        <p class="analysis" id="droneAnalysis"></p>
+      </div>
+      <div class="full panel">
+        <div class="panel-line" style="background:#38bdf8"></div>
+        <div class="panel-header"><h3 class="panel-title" style="color:#38bdf8">Cumulative Totals (UAE MOD Official)</h3></div>
+        <div class="stats-grid" id="cumulativeStats"></div>
+      </div>
+      <div class="full panel">
+        <div class="panel-line" style="background:#5a5a6a"></div>
+        <div class="panel-header"><h3 class="panel-title" style="color:#5a5a6a">Data Sources &amp; Methodology</h3></div>
+        <div class="src-toggle" id="srcToggle" onclick="toggleSources()">&#9654; Show sources (7 tracked)</div>
+        <div id="srcGrid" class="src-grid" style="display:none"></div>
+        <p class="methodology">All ballistic &amp; drone daily counts derived from UAE MOD cumulative statements via @modgovae on X. Daily = today's cumulative minus yesterday's. Salvo estimates: OSINT analyst consensus (not official). All figures subject to fog-of-war revision. Iran's president apologised to Gulf neighbours on Mar 7 but strikes continued through Mar 8.</p>
+      </div>
+    </div>
+    <div class="footer"><p>UPDATED MAR 8 2026 &#8226; 9 DAYS OF DATA &#8226; ALL FIGURES FROM OFFICIAL MOD STATEMENTS</p></div>
+  </div>
+</div>
+<script>
+// ================================================================
+// DATA — Updated Mar 8 2026 with 9 days of official MOD figures
+// BM RESURGENCE: 3 on Mar 4 → 17 on Mar 8 (reserve launchers activated)
+// Deaths now 4 (was 3), injuries 112 (was 94)
+// ================================================================
+var EMBEDDED_DATA = {
+  "ballistic":[
+    {"date":"Feb 28","value":137},
+    {"date":"Mar 1","value":28},
+    {"date":"Mar 2","value":9},
+    {"date":"Mar 3","value":12},
+    {"date":"Mar 4","value":3},
+    {"date":"Mar 5","value":7},
+    {"date":"Mar 6","value":9},
+    {"date":"Mar 7","value":16},
+    {"date":"Mar 8","value":17}
+  ],
+  "ballisticCumulative":{"total":238,"intercepted":221,"seaFall":15,"landed":2},
+  "drones":[
+    {"date":"Feb 28","value":209},
+    {"date":"Mar 1","value":332},
+    {"date":"Mar 2","value":148},
+    {"date":"Mar 3","value":123},
+    {"date":"Mar 4","value":129},
+    {"date":"Mar 5","value":131},
+    {"date":"Mar 6","value":112},
+    {"date":"Mar 7","value":121},
+    {"date":"Mar 8","value":117}
+  ],
+  "droneCumulative":{"total":1422,"intercepted":1342,"landed":80},
+  "salvo":[
+    {"date":"Feb 28 (est)","value":50,"label":"~50 msls/barrage"},
+    {"date":"Mar 1 (est)","value":40,"label":"~40 msls/barrage"},
+    {"date":"Mar 2 (est)","value":9,"label":"~9 msls/barrage"},
+    {"date":"Mar 3 (est)","value":12,"label":"~12 msls/barrage"},
+    {"date":"Mar 4 (est)","value":3,"label":"~3 msls/barrage"},
+    {"date":"Mar 5 (est)","value":7,"label":"~7 msls/barrage"},
+    {"date":"Mar 6 (est)","value":9,"label":"~9 msls/barrage"},
+    {"date":"Mar 7 (est)","value":16,"label":"~16 msls/barrage"},
+    {"date":"Mar 8 (est)","value":17,"label":"~17 msls/barrage"}
+  ],
+  "cruise":{"total":8,"destroyed":8},
+  "casualties":{"killed":4,"injured":112},
+  "lastUpdated":"2026-03-08T18:00:00Z"
+};
+var SOURCES=[
+  {name:"UAE Ministry of Defence",url:"x.com/modgovae",type:"Primary"},
+  {name:"FDD Long War Journal",url:"longwarjournal.org",type:"Analysis"},
+  {name:"Gulf News",url:"gulfnews.com",type:"Reporting"},
+  {name:"Khaleej Times",url:"khaleejtimes.com",type:"Reporting"},
+  {name:"Breaking Defense",url:"breakingdefense.com",type:"Defense"},
+  {name:"Al Jazeera",url:"aljazeera.com",type:"Reporting"},
+  {name:"Wikipedia (aggregated)",url:"en.wikipedia.org",type:"Aggregated"}
+];
+var srcVis=false;
+function toggleSources(){
+  srcVis=!srcVis;
+  document.getElementById("srcGrid").style.display=srcVis?"grid":"none";
+  document.getElementById("srcToggle").innerHTML=(srcVis?"\u25BC Hide":"\u25B6 Show")+" sources ("+SOURCES.length+" tracked)";
+}
+async function loadData(){
+  var D=EMBEDDED_DATA;
+  try{
+    var r=await fetch("uae-data.json?t="+Date.now());
+    if(r.ok){var txt=await r.text();if(txt.trim().charAt(0)==="{"){D=JSON.parse(txt);}}
+  }catch(e){}
+  render(D);
+}
+function render(D){
+  document.getElementById("loading").style.display="none";
+  document.getElementById("app").style.display="block";
+  var dt=new Date(D.lastUpdated);
+  document.getElementById("updatedTime").textContent="Updated: "+dt.toLocaleString("en-GB",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})+" UTC";
+
+  // Ballistic horizontal bars
+  var balMax=0;for(var i=0;i<D.ballistic.length;i++){if(D.ballistic[i].value>balMax)balMax=D.ballistic[i].value;}
+  var day1=D.ballistic[0].value;
+  var bH="";
+  for(var i=0;i<D.ballistic.length;i++){
+    var d=D.ballistic[i];var w=Math.max((d.value/balMax)*100,1.5);
+    var pct=i===0?null:Math.round(((d.value-day1)/day1)*100);
+    var ps=pct===null?"":"<span class=\"hbar-pct "+(pct<0?"pct-green":"pct-red")+"\">"+(pct>0?"+":"")+pct+"%</span>";
+    var inside=w>=14;
+    var valHtml=inside?"<span class=\"hbar-val\">"+d.value+"</span>":"";
+    var outHtml=inside?"":"<span class=\"hbar-val-out\">"+d.value+"</span>";
+    bH+="<div class=\"hbar-row\"><span class=\"hbar-label\">"+d.date+"</span><div class=\"hbar-track\"><div class=\"hbar-fill\" style=\"width:"+w+"%;background:#ef4444;box-shadow:0 0 14px #ef444444\">"+valHtml+"</div>"+outHtml+"</div>"+ps+"</div>";
+  }
+  document.getElementById("ballisticBars").innerHTML=bH;
+
+  // Find the low point and show resurgence
+  var minVal=999,minIdx=0;
+  for(var i=1;i<D.ballistic.length;i++){if(D.ballistic[i].value<minVal){minVal=D.ballistic[i].value;minIdx=i;}}
+  var lastVal=D.ballistic[D.ballistic.length-1].value;
+  if(lastVal>minVal*2){
+    document.getElementById("declineStat").innerHTML="\u26A0 BM RESURGENCE: Low of "+minVal+" on Day "+(minIdx+1)+" \u2192 "+lastVal+" on Day "+D.ballistic.length+". Reserve launchers or resupply likely activated.";
+  } else {
+    var dec=Math.abs(Math.round(((lastVal-day1)/day1)*100));
+    document.getElementById("declineStat").innerHTML="\u25BC "+dec+"% decline Day 1 \u2192 Day "+D.ballistic.length;
+  }
+
+  // Salvo bars
+  var sMax=0;for(var i=0;i<D.salvo.length;i++){if(D.salvo[i].value>sMax)sMax=D.salvo[i].value;}
+  var sH="";
+  for(var i=0;i<D.salvo.length;i++){
+    var d=D.salvo[i];var w=Math.max((d.value/sMax)*100,12);
+    var bg=d.value>=50?"#ef4444":d.value>=30?"#f59e0b":d.value>=15?"#fbbf24":"#4ade80";
+    var sh=d.value>=40?"#f59e0b44":"#4ade8044";
+    sH+="<div class=\"hbar-row\"><span class=\"hbar-label\">"+d.date+"</span><div class=\"hbar-track\"><div class=\"salvo-fill\" style=\"width:"+w+"%;background:"+bg+";box-shadow:0 0 12px "+sh+"\"><span class=\"salvo-label\">"+d.label+"</span></div></div></div>";
+  }
+  document.getElementById("salvoBars").innerHTML=sH;
+
+  // Drone vertical bars
+  var dMax=0;for(var i=0;i<D.drones.length;i++){if(D.drones[i].value>dMax)dMax=D.drones[i].value;}
+  dMax=dMax*1.15;var dH="";
+  for(var i=0;i<D.drones.length;i++){
+    var d=D.drones[i];var h=Math.max((d.value/dMax)*160,10);
+    dH+="<div class=\"vbar-col\"><span class=\"vbar-val\">"+d.value+"</span><div class=\"vbar-bar\" style=\"height:"+h+"px;background:#c084fc;box-shadow:0 0 18px #c084fc55\"></div><span class=\"vbar-date\">"+d.date+"</span></div>";
+  }
+  document.getElementById("droneBars").innerHTML=dH;
+
+  var totalDrones=0;for(var i=0;i<D.drones.length;i++)totalDrones+=D.drones[i].value;
+  document.getElementById("droneAnalysis").textContent="Drones stabilised at ~110\u2013130/day from Day 3 onward \u2014 a sustained harassment tempo Iran can maintain indefinitely from dispersed launch sites. Total: "+totalDrones+" drones across "+D.drones.length+" days. The Day 2 spike (332) remains the peak, but the consistent daily volume shows Iran's drone production pipeline is intact even as heavier BM stocks fluctuate.";
+
+  // Cumulative stats
+  var bc=D.ballisticCumulative,dc=D.droneCumulative;
+  var st=[
+    {l:"BMs Detected",v:bc.total,c:"#f87171"},
+    {l:"BMs Destroyed",v:bc.intercepted,c:"#4ade80",s:Math.round((bc.intercepted/bc.total)*100)+"%"},
+    {l:"Drones Detected",v:dc.total,c:"#c084fc"},
+    {l:"Drones Intercepted",v:dc.intercepted,c:"#4ade80",s:Math.round((dc.intercepted/dc.total)*100)+"%"},
+    {l:"Cruise Missiles",v:D.cruise.total,c:"#f59e0b",s:"all destroyed"},
+    {l:"Killed",v:D.casualties.killed,c:"#f87171"},
+    {l:"Injured",v:D.casualties.injured,c:"#fbbf24"}
+  ];
+  var stH="";for(var i=0;i<st.length;i++){var s=st[i];stH+="<div class=\"stat\"><div class=\"stat-val\" style=\"color:"+s.c+"\">"+s.v+"</div><div class=\"stat-label\">"+s.l+"</div>"+(s.s?"<div class=\"stat-sub\">"+s.s+"</div>":"")+"</div>";}
+  document.getElementById("cumulativeStats").innerHTML=stH;
+
+  var srH="";for(var i=0;i<SOURCES.length;i++){var s=SOURCES[i];srH+="<div class=\"src-card\"><div class=\"src-name\">"+s.name+"</div><div class=\"src-meta\">"+s.type+" \u2022 <span class=\"src-url\">"+s.url+"</span></div></div>";}
+  document.getElementById("srcGrid").innerHTML=srH;
+}
+loadData();
+setInterval(loadData,5*60*1000);
+</script>
+</body>
+</html>

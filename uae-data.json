@@ -1,0 +1,40 @@
+{
+  "ballistic": [
+    {"date": "Feb 28", "value": 137},
+    {"date": "Mar 1", "value": 28},
+    {"date": "Mar 2", "value": 9},
+    {"date": "Mar 3", "value": 12},
+    {"date": "Mar 4", "value": 3},
+    {"date": "Mar 5", "value": 7},
+    {"date": "Mar 6", "value": 9},
+    {"date": "Mar 7", "value": 16},
+    {"date": "Mar 8", "value": 17}
+  ],
+  "ballisticCumulative": {"total": 238, "intercepted": 221, "seaFall": 15, "landed": 2},
+  "drones": [
+    {"date": "Feb 28", "value": 209},
+    {"date": "Mar 1", "value": 332},
+    {"date": "Mar 2", "value": 148},
+    {"date": "Mar 3", "value": 123},
+    {"date": "Mar 4", "value": 129},
+    {"date": "Mar 5", "value": 131},
+    {"date": "Mar 6", "value": 112},
+    {"date": "Mar 7", "value": 121},
+    {"date": "Mar 8", "value": 117}
+  ],
+  "droneCumulative": {"total": 1422, "intercepted": 1342, "landed": 80},
+  "salvo": [
+    {"date": "Feb 28 (est)", "value": 50, "label": "~50 msls/barrage"},
+    {"date": "Mar 1 (est)", "value": 40, "label": "~40 msls/barrage"},
+    {"date": "Mar 2 (est)", "value": 9, "label": "~9 msls/barrage"},
+    {"date": "Mar 3 (est)", "value": 12, "label": "~12 msls/barrage"},
+    {"date": "Mar 4 (est)", "value": 3, "label": "~3 msls/barrage"},
+    {"date": "Mar 5 (est)", "value": 7, "label": "~7 msls/barrage"},
+    {"date": "Mar 6 (est)", "value": 9, "label": "~9 msls/barrage"},
+    {"date": "Mar 7 (est)", "value": 16, "label": "~16 msls/barrage"},
+    {"date": "Mar 8 (est)", "value": 17, "label": "~17 msls/barrage"}
+  ],
+  "cruise": {"total": 8, "destroyed": 8},
+  "casualties": {"killed": 4, "injured": 112},
+  "lastUpdated": "2026-03-08T18:00:00Z"
+}
