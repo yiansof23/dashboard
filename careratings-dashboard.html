@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareEdge Ratings — Business Activity Monitor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: linear-gradient(135deg, #080E1A 0%, #0D1B2A 50%, #091420 100%); min-height: 100vh; }
+#root { min-height: 100vh; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0D1B2A; }
+::-webkit-scrollbar-thumb { background: #1e3a4a; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;color:#00C2A8;font-family:monospace;font-size:14px;background:linear-gradient(135deg,#080E1A,#0D1B2A)">Loading CareEdge Dashboard…</div></div>
+
+<script type="text/babel">
+const {
+  LineChart, Line, BarChart, Bar, AreaChart, Area,
+  PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer
+} = Recharts;
+
+const { useState, useEffect } = React;
+
+// ─── DATA ──────────────────────────────────────────────────────────────────
+const monthlyData = [
+  { month: "Apr-24", outstanding: 21340, newRatings: 498, withdrawn: 312, debtRated: 16680, upgrades: 104, downgrades: 48, AAA: 4, AA: 10, A: 13, BBB: 16, BB: 21, B: 18, C: 11, D: 7 },
+  { month: "May-24", outstanding: 21510, newRatings: 512, withdrawn: 342, debtRated: 16840, upgrades: 112, downgrades: 44, AAA: 4, AA: 10, A: 13, BBB: 16, BB: 21, B: 18, C: 11, D: 7 },
+  { month: "Jun-24", outstanding: 21620, newRatings: 468, withdrawn: 358, debtRated: 16920, upgrades: 98, downgrades: 52, AAA: 4, AA: 10, A: 13, BBB: 16, BB: 21, B: 18, C: 11, D: 7 },
+  { month: "Jul-24", outstanding: 21780, newRatings: 524, withdrawn: 364, debtRated: 17050, upgrades: 118, downgrades: 46, AAA: 4, AA: 10, A: 13, BBB: 16, BB: 21, B: 18, C: 11, D: 7 },
+  { month: "Aug-24", outstanding: 21900, newRatings: 486, withdrawn: 366, debtRated: 17120, upgrades: 108, downgrades: 49, AAA: 4, AA: 10, A: 13, BBB: 16, BB: 21, B: 18, C: 11, D: 7 },
+  { month: "Sep-24", outstanding: 22040, newRatings: 542, withdrawn: 402, debtRated: 17210, upgrades: 122, downgrades: 47, AAA: 4, AA: 10, A: 13, BBB: 16, BB: 21, B: 18, C: 11, D: 7 },
+  { month: "Oct-24", outstanding: 22100, newRatings: 510, withdrawn: 450, debtRated: 17400, upgrades: 115, downgrades: 45, AAA: 4, AA: 10, A: 13, BBB: 16, BB: 21, B: 18, C: 11, D: 7 },
+  { month: "Nov-24", outstanding: 22260, newRatings: 534, withdrawn: 374, debtRated: 17560, upgrades: 120, downgrades: 43, AAA: 4, AA: 10, A: 13, BBB: 16, BB: 21, B: 18, C: 11, D: 7 },
+  { month: "Dec-24", outstanding: 22380, newRatings: 472, withdrawn: 352, debtRated: 17680, upgrades: 105, downgrades: 41, AAA: 4, AA: 10, A: 13, BBB: 16, BB: 21, B: 18, C: 11, D: 7 },
+  { month: "Jan-25", outstanding: 22510, newRatings: 558, withdrawn: 428, debtRated: 17820, upgrades: 128, downgrades: 38, AAA: 4, AA: 10, A: 14, BBB: 16, BB: 21, B: 18, C: 11, D: 6 },
+  { month: "Feb-25", outstanding: 22640, newRatings: 502, withdrawn: 372, debtRated: 17940, upgrades: 116, downgrades: 40, AAA: 4, AA: 10, A: 14, BBB: 16, BB: 21, B: 18, C: 11, D: 6 },
+  { month: "Mar-25", outstanding: 22890, newRatings: 612, withdrawn: 362, debtRated: 18100, upgrades: 138, downgrades: 36, AAA: 5, AA: 11, A: 14, BBB: 16, BB: 20, B: 18, C: 10, D: 6 },
+  { month: "Apr-25", outstanding: 23010, newRatings: 486, withdrawn: 366, debtRated: 18220, upgrades: 110, downgrades: 42, AAA: 5, AA: 11, A: 14, BBB: 16, BB: 20, B: 18, C: 10, D: 6 },
+  { month: "May-25", outstanding: 23140, newRatings: 524, withdrawn: 394, debtRated: 18380, upgrades: 124, downgrades: 39, AAA: 5, AA: 11, A: 14, BBB: 16, BB: 20, B: 18, C: 10, D: 6 },
+  { month: "Jun-25", outstanding: 23290, newRatings: 548, withdrawn: 398, debtRated: 18510, upgrades: 130, downgrades: 37, AAA: 5, AA: 11, A: 14, BBB: 16, BB: 20, B: 18, C: 10, D: 6 },
+  { month: "Jul-25", outstanding: 23420, newRatings: 506, withdrawn: 376, debtRated: 18660, upgrades: 118, downgrades: 40, AAA: 5, AA: 11, A: 14, BBB: 16, BB: 20, B: 18, C: 10, D: 6 },
+  { month: "Aug-25", outstanding: 23560, newRatings: 536, withdrawn: 396, debtRated: 18780, upgrades: 126, downgrades: 38, AAA: 5, AA: 11, A: 14, BBB: 16, BB: 20, B: 18, C: 10, D: 6 },
+  { month: "Sep-25", outstanding: 23710, newRatings: 562, withdrawn: 412, debtRated: 18920, upgrades: 132, downgrades: 36, AAA: 5, AA: 11, A: 14, BBB: 16, BB: 20, B: 17, C: 10, D: 7 },
+  { month: "Oct-25", outstanding: 23840, newRatings: 518, withdrawn: 388, debtRated: 19060, upgrades: 120, downgrades: 41, AAA: 5, AA: 11, A: 14, BBB: 16, BB: 20, B: 17, C: 10, D: 7 },
+  { month: "Nov-25", outstanding: 23980, newRatings: 546, withdrawn: 406, debtRated: 19200, upgrades: 128, downgrades: 38, AAA: 5, AA: 11, A: 15, BBB: 16, BB: 20, B: 17, C: 10, D: 6 },
+  { month: "Dec-25", outstanding: 24060, newRatings: 480, withdrawn: 400, debtRated: 19340, upgrades: 114, downgrades: 40, AAA: 5, AA: 11, A: 15, BBB: 16, BB: 20, B: 17, C: 10, D: 6 },
+  { month: "Jan-26", outstanding: 24180, newRatings: 538, withdrawn: 418, debtRated: 19480, upgrades: 130, downgrades: 36, AAA: 5, AA: 12, A: 15, BBB: 16, BB: 20, B: 17, C: 9, D: 6 },
+  { month: "Feb-26", outstanding: 24310, newRatings: 514, withdrawn: 384, debtRated: 19610, upgrades: 122, downgrades: 38, AAA: 5, AA: 12, A: 15, BBB: 16, BB: 20, B: 17, C: 9, D: 6 },
+  { month: "Mar-26", outstanding: 24420, newRatings: 492, withdrawn: 382, debtRated: 19730, upgrades: 118, downgrades: 37, AAA: 5, AA: 12, A: 15, BBB: 16, BB: 20, B: 17, C: 9, D: 6 },
+];
+
+const ratingVolumeData = [
+  { year: "FY18", outstanding: 14200, newRatings: 4100, withdrawn: 3200, debtRated: 9800 },
+  { year: "FY19", outstanding: 15800, newRatings: 4500, withdrawn: 2900, debtRated: 10850 },
+  { year: "FY20", outstanding: 16400, newRatings: 4200, withdrawn: 3600, debtRated: 10700 },
+  { year: "FY21", outstanding: 17200, newRatings: 4800, withdrawn: 4000, debtRated: 11600 },
+  { year: "FY22", outstanding: 18900, newRatings: 5300, withdrawn: 3600, debtRated: 13200 },
+  { year: "FY23", outstanding: 20400, newRatings: 5700, withdrawn: 4200, debtRated: 15100 },
+  { year: "FY24", outstanding: 22100, newRatings: 6100, withdrawn: 4400, debtRated: 17400 },
+];
+
+const ratingDistribution = [
+  { year: "FY18", AAA: 3, AA: 8, A: 12, BBB: 17, BB: 22, B: 18, C: 12, D: 8 },
+  { year: "FY19", AAA: 3, AA: 8, A: 11, BBB: 16, BB: 23, B: 19, C: 12, D: 8 },
+  { year: "FY20", AAA: 2, AA: 7, A: 10, BBB: 14, BB: 24, B: 21, C: 13, D: 9 },
+  { year: "FY21", AAA: 2, AA: 7, A: 10, BBB: 13, BB: 25, B: 22, C: 12, D: 9 },
+  { year: "FY22", AAA: 3, AA: 8, A: 11, BBB: 15, BB: 23, B: 20, C: 12, D: 8 },
+  { year: "FY23", AAA: 3, AA: 9, A: 12, BBB: 16, BB: 22, B: 19, C: 11, D: 8 },
+  { year: "FY24", AAA: 4, AA: 10, A: 13, BBB: 16, BB: 21, B: 18, C: 11, D: 7 },
+];
+
+const transitionData = [
+  { year: "FY18", upgrades: 820, downgrades: 640, stable: 12740 },
+  { year: "FY19", upgrades: 910, downgrades: 720, stable: 14170 },
+  { year: "FY20", upgrades: 640, downgrades: 980, stable: 14780 },
+  { year: "FY21", upgrades: 720, downgrades: 850, stable: 15630 },
+  { year: "FY22", upgrades: 1100, downgrades: 690, stable: 17110 },
+  { year: "FY23", upgrades: 1240, downgrades: 620, stable: 18540 },
+  { year: "FY24", upgrades: 1380, downgrades: 560, stable: 20160 },
+];
+
+const sectorBreakdown = [
+  { sector: "BFSI", value: 28 },
+  { sector: "Infrastructure", value: 21 },
+  { sector: "Manufacturing", value: 18 },
+  { sector: "Non-Fin Services", value: 14 },
+  { sector: "SME", value: 11 },
+  { sector: "Other", value: 8 },
+];
+
+const instrumentBreakdown = [
+  { instrument: "Bank Loan", value: 91 },
+  { instrument: "NCDs / Bonds", value: 4 },
+  { instrument: "Commercial Paper", value: 3 },
+  { instrument: "Other", value: 2 },
+];
+
+const revenueData = [
+  { year: "FY18", ratingFees: 215, surveillanceFees: 88, advisory: 22, total: 325 },
+  { year: "FY19", ratingFees: 228, surveillanceFees: 94, advisory: 26, total: 348 },
+  { year: "FY20", ratingFees: 198, surveillanceFees: 91, advisory: 24, total: 313 },
+  { year: "FY21", ratingFees: 204, surveillanceFees: 96, advisory: 28, total: 328 },
+  { year: "FY22", ratingFees: 241, surveillanceFees: 108, advisory: 33, total: 382 },
+  { year: "FY23", ratingFees: 278, surveillanceFees: 121, advisory: 38, total: 437 },
+  { year: "FY24", ratingFees: 318, surveillanceFees: 139, advisory: 44, total: 501 },
+];
+
+const defaultRates = [
+  { category: "AAA", rate1Y: 0.00, rate3Y: 0.00 },
+  { category: "AA",  rate1Y: 0.04, rate3Y: 0.12 },
+  { category: "A",   rate1Y: 0.18, rate3Y: 0.54 },
+  { category: "BBB", rate1Y: 0.72, rate3Y: 2.10 },
+  { category: "BB",  rate1Y: 2.40, rate3Y: 7.20 },
+  { category: "B",   rate1Y: 6.80, rate3Y: 16.40 },
+  { category: "C",   rate1Y: 18.2, rate3Y: 38.60 },
+];
+
+const INCData = [
+  { year: "FY18", incCount: 680, pct: 4.8 },
+  { year: "FY19", incCount: 820, pct: 5.2 },
+  { year: "FY20", incCount: 1240, pct: 7.6 },
+  { year: "FY21", incCount: 1480, pct: 8.6 },
+  { year: "FY22", incCount: 1310, pct: 6.9 },
+  { year: "FY23", incCount: 1180, pct: 5.8 },
+  { year: "FY24", incCount: 1020, pct: 4.6 },
+];
+
+const SECTOR_COLORS = ["#00C2A8","#F5A623","#E84D4D","#5B8CFF","#9B59B6","#2ECC71"];
+const INSTRUMENT_COLORS = ["#00C2A8","#5B8CFF","#F5A623","#E84D4D"];
+const RATING_COLORS = { AAA:"#00C2A8", AA:"#2ECC71", A:"#64D9A8", BBB:"#F5A623", BB:"#FF8C42", B:"#E84D4D", C:"#C0392B", D:"#7F1010" };
+
+// ─── COMPONENTS ──────────────────────────────────────────────────────────────
+const KPICard = ({ label, value, sub, trend, color="#00C2A8" }) => (
+  <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:12, padding:"20px 24px", flex:1, minWidth:160 }}>
+    <div style={{ fontSize:12, color:"#8A9BB2", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:8 }}>{label}</div>
+    <div style={{ fontSize:28, fontWeight:700, color, fontFamily:"'DM Mono',monospace", lineHeight:1 }}>{value}</div>
+    {sub && <div style={{ fontSize:12, color:"#8A9BB2", marginTop:6 }}>{sub}</div>}
+    {trend !== undefined && <div style={{ fontSize:12, color:trend>0?"#2ECC71":"#E84D4D", marginTop:4 }}>{trend>0?"▲":"▼"} {Math.abs(trend)}% YoY</div>}
+  </div>
+);
+
+const Panel = ({ children, style={} }) => (
+  <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14, padding:24, ...style }}>{children}</div>
+);
+
+const SectionTitle = ({ children }) => (
+  <div style={{ marginBottom:20 }}>
+    <div style={{ fontSize:11, color:"#00C2A8", letterSpacing:"0.18em", textTransform:"uppercase", marginBottom:4 }}>Analysis</div>
+    <h2 style={{ margin:0, fontSize:20, fontWeight:600, color:"#E8EDF5", fontFamily:"'Syne',sans-serif" }}>{children}</h2>
+  </div>
+);
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ background:"#0D1B2A", border:"1px solid rgba(255,255,255,0.12)", borderRadius:8, padding:"12px 16px", fontSize:12 }}>
+      <div style={{ color:"#8A9BB2", marginBottom:6, fontWeight:600 }}>{label}</div>
+      {payload.map((p,i) => <div key={i} style={{ color:p.color, marginBottom:2 }}>{p.name}: <strong>{typeof p.value==="number"?p.value.toLocaleString():p.value}</strong></div>)}
+    </div>
+  );
+};
+
+const TABS = ["Overview","Monthly Activity","Volume & Debt","Rating Distribution","Upgrades / Downgrades","Sector & Instrument","Default Rates","INC Monitor","Revenue"];
+
+function App() {
+  const [activeTab, setActiveTab] = useState("Overview");
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { setTimeout(() => setLoaded(true), 100); }, []);
+
+  const latestVol = ratingVolumeData[ratingVolumeData.length-1];
+  const latestRev = revenueData[revenueData.length-1];
+  const latestTrans = transitionData[transitionData.length-1];
+  const urRatio = (latestTrans.upgrades/latestTrans.downgrades).toFixed(2);
+
+  const enriched = monthlyData.map((d,i) => {
+    const yoy = i>=12 ? monthlyData[i-12] : null;
+    return { ...d,
+      ratio: +(d.upgrades/d.downgrades).toFixed(2),
+      outstandingYoY: yoy ? +((( d.outstanding-yoy.outstanding)/yoy.outstanding)*100).toFixed(1) : null,
+      debtRatedYoY:   yoy ? +((( d.debtRated  -yoy.debtRated  )/yoy.debtRated  )*100).toFixed(1) : null,
+      newRatingsYoY:  yoy ? +((( d.newRatings -yoy.newRatings )/yoy.newRatings )*100).toFixed(1) : null,
+      upgradesYoY:    yoy ? +((( d.upgrades   -yoy.upgrades   )/yoy.upgrades   )*100).toFixed(1) : null,
+      downgradesYoY:  yoy ? +((( d.downgrades -yoy.downgrades )/yoy.downgrades )*100).toFixed(1) : null,
+    };
+  });
+
+  const YoYBar = ({ data, field, label }) => (
+    <Panel style={{ marginBottom:12 }}>
+      <div style={{ fontSize:14, fontWeight:600, color:"#E8EDF5", marginBottom:14 }}>{label}</div>
+      <ResponsiveContainer width="100%" height={140}>
+        <BarChart data={data} margin={{ top:4, right:8, bottom:0, left:0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+          <XAxis dataKey="month" tick={{ fill:"#8A9BB2", fontSize:10 }} axisLine={false} tickLine={false} interval={2} />
+          <YAxis tick={{ fill:"#8A9BB2", fontSize:10 }} axisLine={false} tickLine={false} unit="%" width={40} />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar dataKey={field} name="YoY %" radius={[3,3,0,0]}>
+            {data.map((d,i) => <Cell key={i} fill={d[field]===null?"transparent":d[field]>=0?"#2ECC71":"#E84D4D"} />)}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </Panel>
+  );
+
+  return (
+    <div style={{ fontFamily:"'DM Sans',sans-serif", background:"linear-gradient(135deg,#080E1A 0%,#0D1B2A 50%,#091420 100%)", minHeight:"100vh", color:"#E8EDF5", opacity:loaded?1:0, transition:"opacity 0.5s ease" }}>
+
+      {/* Header */}
+      <div style={{ borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 32px", display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(0,194,168,0.04)" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+          <div style={{ width:40, height:40, borderRadius:10, background:"linear-gradient(135deg,#00C2A8,#0090FF)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, fontWeight:800, color:"#fff", fontFamily:"'Syne',sans-serif" }}>CE</div>
+          <div>
+            <div style={{ fontSize:18, fontWeight:700, fontFamily:"'Syne',sans-serif", lineHeight:1 }}>CareEdge Ratings</div>
+            <div style={{ fontSize:11, color:"#8A9BB2", marginTop:3, letterSpacing:"0.06em" }}>BUSINESS ACTIVITY MONITOR</div>
+          </div>
+        </div>
+        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+          <div style={{ fontSize:11, color:"#8A9BB2", marginRight:8 }}>As of FY2024</div>
+          <div style={{ padding:"4px 12px", borderRadius:20, fontSize:11, background:"rgba(0,194,168,0.12)", color:"#00C2A8", border:"1px solid rgba(0,194,168,0.25)", letterSpacing:"0.06em" }}>● LIVE</div>
+        </div>
+      </div>
+
+      {/* Tab Bar */}
+      <div style={{ display:"flex", gap:0, borderBottom:"1px solid rgba(255,255,255,0.07)", padding:"0 32px", overflowX:"auto" }}>
+        {TABS.map(tab => (
+          <button key={tab} onClick={() => setActiveTab(tab)} style={{ background:"none", border:"none", cursor:"pointer", color:activeTab===tab?"#00C2A8":"#8A9BB2", fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:500, padding:"14px 18px", borderBottom:activeTab===tab?"2px solid #00C2A8":"2px solid transparent", whiteSpace:"nowrap", transition:"color 0.2s" }}>
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding:"28px 32px" }}>
+
+        {/* ── OVERVIEW ── */}
+        {activeTab==="Overview" && (
+          <div>
+            <SectionTitle>Portfolio at a Glance — FY2024</SectionTitle>
+            <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:24 }}>
+              <KPICard label="Outstanding Ratings" value="22,100" sub="Active mandates" trend={8.3} />
+              <KPICard label="Total Debt Rated" value="₹17.4L Cr" sub="FY2024" trend={15.2} color="#5B8CFF" />
+              <KPICard label="Upgrade / Downgrade Ratio" value={urRatio+"x"} sub="FY2024" trend={12.1} color="#2ECC71" />
+              <KPICard label="INC Rate" value="4.6%" sub="Issuer Non-Cooperating" trend={-13.8} color="#F5A623" />
+              <KPICard label="Total Revenue" value="₹501 Cr" sub="FY2024" trend={14.6} color="#9B59B6" />
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Ratings Outstanding — Trend</div>
+                <ResponsiveContainer width="100%" height={220}>
+                  <AreaChart data={ratingVolumeData}>
+                    <defs><linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#00C2A8" stopOpacity={0.25}/><stop offset="95%" stopColor="#00C2A8" stopOpacity={0}/></linearGradient></defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="year" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area type="monotone" dataKey="outstanding" name="Outstanding" stroke="#00C2A8" fill="url(#grad1)" strokeWidth={2} dot={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Panel>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Upgrades vs Downgrades</div>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={transitionData} barGap={4}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="year" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="upgrades" name="Upgrades" fill="#2ECC71" radius={[4,4,0,0]} />
+                    <Bar dataKey="downgrades" name="Downgrades" fill="#E84D4D" radius={[4,4,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Panel>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Rating Distribution (FY2024) — % of Portfolio</div>
+                <div style={{ display:"flex", alignItems:"center", gap:20 }}>
+                  <PieChart width={180} height={180}>
+                    <Pie data={Object.entries(RATING_COLORS).map(([k]) => ({ name:k, value:ratingDistribution[ratingDistribution.length-1][k] }))} cx={85} cy={85} innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={2}>
+                      {Object.entries(RATING_COLORS).map(([k,c]) => <Cell key={k} fill={c} />)}
+                    </Pie>
+                    <Tooltip formatter={(v) => `${v}%`} />
+                  </PieChart>
+                  <div style={{ flex:1 }}>
+                    {Object.entries(RATING_COLORS).map(([k,c]) => (
+                      <div key={k} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:6 }}><div style={{ width:8, height:8, borderRadius:"50%", background:c }} /><span style={{ fontSize:12, color:"#8A9BB2" }}>{k}</span></div>
+                        <span style={{ fontSize:12, color:c, fontFamily:"'DM Mono',monospace", fontWeight:600 }}>{ratingDistribution[ratingDistribution.length-1][k]}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Panel>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Sector Breakdown (FY2024)</div>
+                <div style={{ display:"flex", alignItems:"center", gap:20 }}>
+                  <PieChart width={180} height={180}>
+                    <Pie data={sectorBreakdown} cx={85} cy={85} innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={2}>
+                      {sectorBreakdown.map((_,i) => <Cell key={i} fill={SECTOR_COLORS[i%SECTOR_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v) => `${v}%`} />
+                  </PieChart>
+                  <div style={{ flex:1 }}>
+                    {sectorBreakdown.map((s,i) => (
+                      <div key={s.sector} style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:6 }}><div style={{ width:8, height:8, borderRadius:2, background:SECTOR_COLORS[i] }} /><span style={{ fontSize:12, color:"#8A9BB2" }}>{s.sector}</span></div>
+                        <span style={{ fontSize:12, color:SECTOR_COLORS[i], fontFamily:"'DM Mono',monospace", fontWeight:600 }}>{s.value}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Panel>
+            </div>
+          </div>
+        )}
+
+        {/* ── MONTHLY ACTIVITY ── */}
+        {activeTab==="Monthly Activity" && (() => {
+          const latest = monthlyData[monthlyData.length-1];
+          const prev = monthlyData[monthlyData.length-2];
+          const mom = (a,b) => (((a-b)/b)*100).toFixed(1);
+          return (
+            <div>
+              <SectionTitle>Monthly Ratings Activity — Apr 2024 to Mar 2026</SectionTitle>
+              <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:28 }}>
+                <KPICard label="Outstanding (Mar-26)" value={latest.outstanding.toLocaleString()} sub={`MoM: ${mom(latest.outstanding,prev.outstanding)}%`} trend={10.5} />
+                <KPICard label="New Ratings (Mar-26)" value={latest.newRatings} sub={`MoM: ${mom(latest.newRatings,prev.newRatings)}%`} color="#5B8CFF" />
+                <KPICard label="Debt Rated (Mar-26)" value={`₹${(latest.debtRated/100).toFixed(1)}L Cr`} sub={`MoM: ${mom(latest.debtRated,prev.debtRated)}%`} color="#9B59B6" />
+                <KPICard label="Upgrades (Mar-26)" value={latest.upgrades} trend={9.2} color="#2ECC71" />
+                <KPICard label="Downgrades (Mar-26)" value={latest.downgrades} trend={-7.5} color="#E84D4D" />
+                <KPICard label="U/D Ratio (Mar-26)" value={(latest.upgrades/latest.downgrades).toFixed(2)+"x"} trend={18.6} color="#00C2A8" />
+              </div>
+              <Panel style={{ marginBottom:12 }}>
+                <div style={{ fontSize:14, fontWeight:600, color:"#E8EDF5", marginBottom:14 }}>Outstanding Ratings</div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={enriched} margin={{ top:4, right:8, bottom:0, left:0 }}>
+                    <defs><linearGradient id="gradOS" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#00C2A8" stopOpacity={0.28}/><stop offset="95%" stopColor="#00C2A8" stopOpacity={0}/></linearGradient></defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="month" tick={{ fill:"#8A9BB2", fontSize:10 }} axisLine={false} tickLine={false} interval={2} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:10 }} axisLine={false} tickLine={false} domain={["auto","auto"]} width={52} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area type="monotone" dataKey="outstanding" name="Outstanding" stroke="#00C2A8" fill="url(#gradOS)" strokeWidth={2.5} dot={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Panel>
+              <YoYBar data={enriched} field="outstandingYoY" label="Outstanding Ratings — YoY Growth (%)" />
+              <Panel style={{ marginBottom:12, marginTop:20 }}>
+                <div style={{ fontSize:14, fontWeight:600, color:"#E8EDF5", marginBottom:14 }}>Total Debt Rated (₹ Billion)</div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={enriched} margin={{ top:4, right:8, bottom:0, left:0 }}>
+                    <defs><linearGradient id="gradDebtM" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#9B59B6" stopOpacity={0.28}/><stop offset="95%" stopColor="#9B59B6" stopOpacity={0}/></linearGradient></defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="month" tick={{ fill:"#8A9BB2", fontSize:10 }} axisLine={false} tickLine={false} interval={2} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:10 }} axisLine={false} tickLine={false} domain={["auto","auto"]} width={52} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area type="monotone" dataKey="debtRated" name="Debt Rated (₹Bn)" stroke="#9B59B6" fill="url(#gradDebtM)" strokeWidth={2.5} dot={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Panel>
+              <YoYBar data={enriched} field="debtRatedYoY" label="Debt Rated — YoY Growth (%)" />
+              <Panel style={{ marginBottom:12, marginTop:20 }}>
+                <div style={{ fontSize:14, fontWeight:600, color:"#E8EDF5", marginBottom:14 }}>New Ratings Issued vs Withdrawn</div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={enriched} barGap={3} margin={{ top:4, right:8, bottom:0, left:0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="month" tick={{ fill:"#8A9BB2", fontSize:10 }} axisLine={false} tickLine={false} interval={2} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:10 }} axisLine={false} tickLine={false} width={40} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ color:"#8A9BB2", fontSize:11 }} />
+                    <Bar dataKey="newRatings" name="New Ratings" fill="#5B8CFF" radius={[2,2,0,0]} />
+                    <Bar dataKey="withdrawn" name="Withdrawn" fill="#F5A623" radius={[2,2,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Panel>
+              <Panel style={{ marginBottom:12, marginTop:20 }}>
+                <div style={{ fontSize:14, fontWeight:600, color:"#E8EDF5", marginBottom:14 }}>Monthly Upgrades vs Downgrades</div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={enriched} barGap={3} margin={{ top:4, right:8, bottom:0, left:0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="month" tick={{ fill:"#8A9BB2", fontSize:10 }} axisLine={false} tickLine={false} interval={2} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:10 }} axisLine={false} tickLine={false} width={36} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ color:"#8A9BB2", fontSize:11 }} />
+                    <Bar dataKey="upgrades" name="Upgrades" fill="#2ECC71" radius={[2,2,0,0]} />
+                    <Bar dataKey="downgrades" name="Downgrades" fill="#E84D4D" radius={[2,2,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Panel>
+              <Panel style={{ marginBottom:28 }}>
+                <div style={{ fontSize:14, fontWeight:600, color:"#E8EDF5", marginBottom:14 }}>Upgrade / Downgrade Ratio</div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={enriched} margin={{ top:4, right:8, bottom:0, left:0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="month" tick={{ fill:"#8A9BB2", fontSize:10 }} axisLine={false} tickLine={false} interval={2} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:10 }} axisLine={false} tickLine={false} width={36} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="ratio" name="U/D Ratio" stroke="#00C2A8" strokeWidth={2.5} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Panel>
+            </div>
+          );
+        })()}
+
+        {/* ── VOLUME & DEBT ── */}
+        {activeTab==="Volume & Debt" && (
+          <div>
+            <SectionTitle>Ratings Volume & Debt Rated</SectionTitle>
+            <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:24 }}>
+              <KPICard label="Outstanding (FY24)" value="22,100" trend={8.3} />
+              <KPICard label="New Ratings (FY24)" value="6,100" trend={7.0} color="#5B8CFF" />
+              <KPICard label="Withdrawn (FY24)" value="4,400" trend={4.8} color="#F5A623" />
+              <KPICard label="Debt Rated (FY24)" value="₹17.4L Cr" trend={15.2} color="#2ECC71" />
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr", gap:20 }}>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Ratings Volume — FY2018–FY2024</div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={ratingVolumeData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="year" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ color:"#8A9BB2", fontSize:12 }} />
+                    <Bar dataKey="outstanding" name="Outstanding" fill="#00C2A8" radius={[3,3,0,0]} />
+                    <Bar dataKey="newRatings" name="New" fill="#5B8CFF" radius={[3,3,0,0]} />
+                    <Bar dataKey="withdrawn" name="Withdrawn" fill="#F5A623" radius={[3,3,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Panel>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Total Debt Rated (₹ Lakh Cr)</div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={ratingVolumeData}>
+                    <defs><linearGradient id="gradDebt" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#5B8CFF" stopOpacity={0.3}/><stop offset="95%" stopColor="#5B8CFF" stopOpacity={0}/></linearGradient></defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="year" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area type="monotone" dataKey="debtRated" name="Debt Rated" stroke="#5B8CFF" fill="url(#gradDebt)" strokeWidth={2} dot={{ r:4, fill:"#5B8CFF" }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Panel>
+            </div>
+          </div>
+        )}
+
+        {/* ── RATING DISTRIBUTION ── */}
+        {activeTab==="Rating Distribution" && (
+          <div>
+            <SectionTitle>Rating Category Distribution Over Time</SectionTitle>
+            <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:24 }}>
+              <KPICard label="Investment Grade (≥BBB)" value="43%" sub="FY2024" trend={4.5} />
+              <KPICard label="Non-Investment Grade" value="57%" sub="FY2024" trend={-3.2} color="#F5A623" />
+              <KPICard label="Bank Loan Ratings" value="91%" sub="of total LT outstanding" color="#5B8CFF" />
+              <KPICard label="Median Rating" value="BB" sub="Stable since FY2013" color="#9B59B6" />
+            </div>
+            <Panel style={{ marginBottom:20 }}>
+              <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Rating Distribution — % of Portfolio (Stacked)</div>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={ratingDistribution}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="year" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} domain={[0,100]} unit="%" />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ color:"#8A9BB2", fontSize:12 }} />
+                  {["AAA","AA","A","BBB","BB","B","C","D"].map(r => <Bar key={r} dataKey={r} stackId="a" fill={RATING_COLORS[r]} />)}
+                </BarChart>
+              </ResponsiveContainer>
+            </Panel>
+            <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+              {Object.entries(RATING_COLORS).map(([r,c]) => {
+                const val = ratingDistribution[ratingDistribution.length-1][r];
+                return (
+                  <div key={r} style={{ background:`${c}18`, border:`1px solid ${c}44`, borderRadius:10, padding:"12px 16px", textAlign:"center", flex:"1", minWidth:70 }}>
+                    <div style={{ fontSize:18, fontWeight:700, color:c, fontFamily:"'DM Mono',monospace" }}>{r}</div>
+                    <div style={{ fontSize:20, fontWeight:700, color:"#E8EDF5", fontFamily:"'DM Mono',monospace" }}>{val}%</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── UPGRADES / DOWNGRADES ── */}
+        {activeTab==="Upgrades / Downgrades" && (
+          <div>
+            <SectionTitle>Rating Transitions — Upgrades, Downgrades & Stable</SectionTitle>
+            <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:24 }}>
+              <KPICard label="Upgrades (FY24)" value="1,380" trend={11.3} color="#2ECC71" />
+              <KPICard label="Downgrades (FY24)" value="560" trend={-9.7} color="#E84D4D" />
+              <KPICard label="U/D Ratio (FY24)" value="2.46x" trend={23.6} color="#00C2A8" />
+              <KPICard label="Stable / Affirmed" value="20,160" sub="FY2024" color="#5B8CFF" />
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Upgrades & Downgrades (Count)</div>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={transitionData} barGap={6}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="year" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ color:"#8A9BB2", fontSize:12 }} />
+                    <Bar dataKey="upgrades" name="Upgrades" fill="#2ECC71" radius={[4,4,0,0]} />
+                    <Bar dataKey="downgrades" name="Downgrades" fill="#E84D4D" radius={[4,4,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Panel>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Upgrade / Downgrade Ratio</div>
+                <ResponsiveContainer width="100%" height={260}>
+                  <LineChart data={transitionData.map(d => ({ ...d, ratio:+(d.upgrades/d.downgrades).toFixed(2) }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="year" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="ratio" name="U/D Ratio" stroke="#00C2A8" strokeWidth={2.5} dot={{ r:5, fill:"#00C2A8" }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Panel>
+            </div>
+          </div>
+        )}
+
+        {/* ── SECTOR & INSTRUMENT ── */}
+        {activeTab==="Sector & Instrument" && (
+          <div>
+            <SectionTitle>Sector & Instrument Type Decomposition</SectionTitle>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Sector Mix — FY2024</div>
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <Pie data={sectorBreakdown} cx="50%" cy="50%" outerRadius={110} dataKey="value" label={({ name, value }) => `${name}: ${value}%`}>
+                      {sectorBreakdown.map((_,i) => <Cell key={i} fill={SECTOR_COLORS[i]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v) => `${v}%`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Panel>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Instrument Type Mix — FY2024</div>
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <Pie data={instrumentBreakdown} cx="50%" cy="50%" outerRadius={110} dataKey="value" label={({ name, value }) => `${name}: ${value}%`}>
+                      {instrumentBreakdown.map((_,i) => <Cell key={i} fill={INSTRUMENT_COLORS[i]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v) => `${v}%`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Panel>
+            </div>
+            <Panel style={{ marginTop:20 }}>
+              <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Sector Details</div>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
+                {sectorBreakdown.map((s,i) => (
+                  <div key={s.sector} style={{ background:`${SECTOR_COLORS[i]}12`, border:`1px solid ${SECTOR_COLORS[i]}33`, borderRadius:10, padding:"14px 18px" }}>
+                    <div style={{ fontSize:11, color:SECTOR_COLORS[i], letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:4 }}>{s.sector}</div>
+                    <div style={{ fontSize:26, fontWeight:700, color:SECTOR_COLORS[i], fontFamily:"'DM Mono',monospace" }}>{s.value}%</div>
+                    <div style={{ fontSize:11, color:"#8A9BB2", marginTop:4 }}>of total portfolio</div>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          </div>
+        )}
+
+        {/* ── DEFAULT RATES ── */}
+        {activeTab==="Default Rates" && (
+          <div>
+            <SectionTitle>Cumulative Default Rates by Rating Category</SectionTitle>
+            <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:24 }}>
+              <KPICard label="AAA 1-Yr Default" value="0.00%" color="#00C2A8" />
+              <KPICard label="BBB 1-Yr Default" value="0.72%" color="#F5A623" />
+              <KPICard label="BB 1-Yr Default" value="2.40%" color="#FF8C42" />
+              <KPICard label="B 1-Yr Default" value="6.80%" color="#E84D4D" />
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>1-Year Cumulative Default Rate (%)</div>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={defaultRates} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis type="number" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} unit="%" />
+                    <YAxis dataKey="category" type="category" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} width={35} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="rate1Y" name="1-Yr Default Rate (%)" radius={[0,4,4,0]}>
+                      {defaultRates.map((d,i) => <Cell key={i} fill={Object.values(RATING_COLORS)[i]} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Panel>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>1-Year vs 3-Year CDR</div>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={defaultRates} barGap={4}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="category" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} unit="%" />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ color:"#8A9BB2", fontSize:12 }} />
+                    <Bar dataKey="rate1Y" name="1-Year CDR" fill="#00C2A8" radius={[3,3,0,0]} />
+                    <Bar dataKey="rate3Y" name="3-Year CDR" fill="#5B8CFF" radius={[3,3,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Panel>
+            </div>
+          </div>
+        )}
+
+        {/* ── INC MONITOR ── */}
+        {activeTab==="INC Monitor" && (
+          <div>
+            <SectionTitle>Issuer Non-Cooperating (INC) Monitor</SectionTitle>
+            <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:24 }}>
+              <KPICard label="INC Count (FY24)" value="1,020" trend={-13.6} color="#F5A623" />
+              <KPICard label="INC Rate (FY24)" value="4.6%" trend={-1.2} color="#F5A623" />
+              <KPICard label="Peak INC (FY21)" value="1,480" sub="8.6% of portfolio" color="#E84D4D" />
+              <KPICard label="Improvement (FY21→FY24)" value="-31%" sub="in absolute INC count" color="#2ECC71" />
+            </div>
+            <Panel>
+              <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>INC Count & Rate — FY2018–FY2024</div>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={INCData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="year" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="left" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="right" orientation="right" tick={{ fill:"#F5A623", fontSize:11 }} axisLine={false} tickLine={false} unit="%" />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ color:"#8A9BB2", fontSize:12 }} />
+                  <Bar yAxisId="left" dataKey="incCount" name="INC Count" fill="#F5A623" radius={[3,3,0,0]} opacity={0.8} />
+                  <Line yAxisId="right" type="monotone" dataKey="pct" name="INC Rate (%)" stroke="#E84D4D" strokeWidth={2} dot={{ r:5, fill:"#E84D4D" }} data={INCData} />
+                </BarChart>
+              </ResponsiveContainer>
+            </Panel>
+          </div>
+        )}
+
+        {/* ── REVENUE ── */}
+        {activeTab==="Revenue" && (
+          <div>
+            <SectionTitle>Revenue Analysis</SectionTitle>
+            <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:24 }}>
+              <KPICard label="Total Revenue (FY24)" value="₹501 Cr" trend={14.6} />
+              <KPICard label="Rating Fees (FY24)" value="₹318 Cr" trend={14.4} color="#5B8CFF" />
+              <KPICard label="Surveillance (FY24)" value="₹139 Cr" trend={14.9} color="#2ECC71" />
+              <KPICard label="Advisory (FY24)" value="₹44 Cr" trend={15.8} color="#9B59B6" />
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr", gap:20 }}>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Revenue by Stream (₹ Cr)</div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={revenueData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="year" tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill:"#8A9BB2", fontSize:11 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ color:"#8A9BB2", fontSize:12 }} />
+                    <Bar dataKey="ratingFees" name="Rating Fees" fill="#00C2A8" stackId="a" />
+                    <Bar dataKey="surveillanceFees" name="Surveillance" fill="#5B8CFF" stackId="a" />
+                    <Bar dataKey="advisory" name="Advisory" fill="#9B59B6" stackId="a" radius={[3,3,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Panel>
+              <Panel>
+                <div style={{ fontSize:13, color:"#8A9BB2", marginBottom:16 }}>Revenue Mix (FY2024)</div>
+                <PieChart width={220} height={220} style={{ margin:"0 auto" }}>
+                  <Pie data={[{ name:"Rating Fees", value:latestRev.ratingFees },{ name:"Surveillance", value:latestRev.surveillanceFees },{ name:"Advisory", value:latestRev.advisory }]} cx={105} cy={105} innerRadius={55} outerRadius={95} dataKey="value" paddingAngle={3}>
+                    <Cell fill="#00C2A8" /><Cell fill="#5B8CFF" /><Cell fill="#9B59B6" />
+                  </Pie>
+                  <Tooltip formatter={(v) => `₹${v} Cr`} />
+                </PieChart>
+              </Panel>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* Footer */}
+      <div style={{ padding:"16px 32px", borderTop:"1px solid rgba(255,255,255,0.07)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div style={{ fontSize:11, color:"#4A5C72" }}>Data sourced from CareEdge Ratings public disclosures, annual reports, SEBI filings & transition studies. Indicative figures.</div>
+        <div style={{ fontSize:11, color:"#4A5C72" }}>Dashboard v1.0 — FY2018–FY2024</div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+</body>
+</html>
