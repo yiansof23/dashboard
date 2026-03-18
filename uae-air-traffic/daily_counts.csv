@@ -1,0 +1,3 @@
+date,airport,arrivals,departures,total,source
+2026-03-16,OMAA,97,93,190,api
+2026-03-16,OMDB,55,54,109,api
