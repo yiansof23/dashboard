@@ -1,0 +1,36 @@
+name: UAE Air Traffic Daily Update
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install matplotlib
+
+      - name: Pull flight data and post to Discord
+        env:
+          FLIGHTAWARE_API_KEY: ${{ secrets.FLIGHTAWARE_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        working-directory: uae-air-traffic
+        run: python3 uae_air_traffic.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "UAE Air Traffic Bot"
+          git config user.email "bot@tracker.local"
+          git add uae-air-traffic/daily_counts.csv uae-air-traffic/merged_7d.csv uae-air-traffic/air_traffic_chart.png
+          git diff --staged --quiet || git commit -m "📊 Air traffic update $(date -u +%Y-%m-%d)"
+          git push
