@@ -24,7 +24,7 @@ BASE_URL        = "https://aeroapi.flightaware.com/aeroapi"
 AIRPORTS        = ["OMDB", "OMAA"]
 AIRPORT_NAMES   = {"OMDB": "Dubai (DXB)", "OMAA": "Abu Dhabi (AUH)"}
 DIRECTIONS      = ["arrivals", "departures"]
-API_DELAY       = 2
+API_DELAY       = 10  # generous spacing — this only runs once/day
 BASELINES       = {"OMDB": 850, "OMAA": 150}
 
 # Paths (relative to script location)
@@ -42,9 +42,11 @@ def log(msg, **kwargs):
 # ── API Layer ───────────────────────────────────────────────────────────────
 def fetch_count(airport, direction, start_iso, end_iso):
     """Fetch total flight count for one airport/direction/day."""
+    MAX_RETRIES = 3
     all_flights = []
     url = f"{BASE_URL}/airports/{airport}/flights/{direction}?start={start_iso}&end={end_iso}&max_pages=20"
     pages_used = 0
+    retries = 0
 
     while url:
         if url.startswith("/"):
@@ -62,9 +64,15 @@ def fetch_count(airport, direction, start_iso, end_iso):
                     time.sleep(API_DELAY)
                 else:
                     url = None
+                retries = 0  # reset on success
         except urllib.error.HTTPError as e:
             if e.code == 429:
-                log("    Rate limited, waiting 60s...")
+                retries += 1
+                body = e.read().decode()[:200]
+                if retries >= MAX_RETRIES:
+                    log(f"    Rate limited {MAX_RETRIES}x, giving up ({body})")
+                    return len(all_flights), pages_used
+                log(f"    Rate limited (attempt {retries}/{MAX_RETRIES}), waiting 60s...")
                 time.sleep(60)
                 continue
             else:
@@ -302,14 +310,37 @@ if __name__ == "__main__":
         if not API_KEY:
             log("ERROR: FLIGHTAWARE_API_KEY not set")
             sys.exit(1)
+
+        # Health check — verify API is responsive before starting
+        log("API health check...", end=" ")
+        try:
+            hc_req = urllib.request.Request(
+                f"{BASE_URL}/airports/OMDB/flights/counts",
+                headers={"x-apikey": API_KEY},
+            )
+            with urllib.request.urlopen(hc_req, timeout=15) as resp:
+                print("OK")
+        except Exception as e:
+            log(f"FAILED ({e}). Will still generate chart from existing data.")
+            chart_only = True
+
+    if not chart_only:
         log(f"Pulling data for {target_date}")
         results, pages = pull_day(target_date)
-        append_to_daily_csv(target_date, results)
-        log(f"API pages used: {pages}")
-        for ap in AIRPORTS:
-            arr = results[ap]["arrivals"]
-            dep = results[ap]["departures"]
-            log(f"  {AIRPORT_NAMES[ap]}: {arr} arr + {dep} dep = {arr + dep}")
+        # Only save if we got at least some data
+        got_data = any(
+            results[ap].get("arrivals", 0) + results[ap].get("departures", 0) > 0
+            for ap in AIRPORTS
+        )
+        if got_data:
+            append_to_daily_csv(target_date, results)
+            log(f"API pages used: {pages}")
+            for ap in AIRPORTS:
+                arr = results[ap]["arrivals"]
+                dep = results[ap]["departures"]
+                log(f"  {AIRPORT_NAMES[ap]}: {arr} arr + {dep} dep = {arr + dep}")
+        else:
+            log("No data returned (API may be rate limited). Chart will use existing data.")
     else:
         log("Chart-only mode (no API pull)")
 
