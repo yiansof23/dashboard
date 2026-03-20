@@ -1,3 +1,9 @@
 date,airport,arrivals,departures,total,source
 2026-03-16,OMAA,97,93,190,api
 2026-03-16,OMDB,55,54,109,api
+2026-03-17,OMDB,8,7,15,manual_est
+2026-03-17,OMAA,100,98,198,manual_est
+2026-03-18,OMDB,10,9,19,manual_est
+2026-03-18,OMAA,105,103,208,manual_est
+2026-03-19,OMDB,12,10,22,manual_est
+2026-03-19,OMAA,110,108,218,manual_est

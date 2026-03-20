@@ -25,7 +25,7 @@ AIRPORTS        = ["OMDB", "OMAA"]
 AIRPORT_NAMES   = {"OMDB": "Dubai (DXB)", "OMAA": "Abu Dhabi (AUH)"}
 DIRECTIONS      = ["arrivals", "departures"]
 API_DELAY       = 10  # generous spacing — this only runs once/day
-BASELINES       = {"OMDB": 850, "OMAA": 150}
+BASELINES       = {"OMDB": 850, "OMAA": 150}  # 7-day pre-conflict totals (API-calibrated)
 
 # Paths (relative to script location)
 SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
@@ -125,48 +125,73 @@ def append_to_daily_csv(date_str, results):
 
 
 def compute_7d_totals():
-    """Merge backfill (already 7d totals) with daily API data (compute rolling 7d sum)."""
-    backfill = {}
+    """Merge backfill and API data into a unified daily series, then compute 7d rolling sums.
+
+    Backfill data contains 7-day totals extracted from charts. We estimate daily
+    counts from those by dividing by 7. Actual API daily counts override estimates
+    for any date where both exist. The rolling 7d sum is then computed across the
+    full unified series, so the transition from backfill → API is seamless.
+    """
+    # ── 1. Load backfill 7d totals ───────────────────────────────────────────
+    backfill_7d = {}
     if os.path.exists(BACKFILL_CSV):
         with open(BACKFILL_CSV) as f:
             for row in csv.DictReader(f):
-                backfill[(row["date"], row["airport"])] = {
+                backfill_7d[(row["date"], row["airport"])] = {
                     "arrivals_7d": int(row["arrivals_7d"]),
                     "departures_7d": int(row["departures_7d"]),
                 }
 
-    daily = {}
+    # ── 2. Load actual API daily counts ──────────────────────────────────────
+    api_daily = {}
     if os.path.exists(DAILY_CSV):
         with open(DAILY_CSV) as f:
             for row in csv.DictReader(f):
-                daily[(row["date"], row["airport"])] = {
+                api_daily[(row["date"], row["airport"])] = {
                     "arrivals": int(row["arrivals"]),
                     "departures": int(row["departures"]),
                 }
 
-    all_dates = sorted(set(d for d, _ in list(backfill.keys()) + list(daily.keys())))
+    # ── 3. Estimate daily counts from backfill 7d totals ────────────────────
+    estimated_daily = {}
+    for (date_str, airport), vals in backfill_7d.items():
+        estimated_daily[(date_str, airport)] = {
+            "arrivals": round(vals["arrivals_7d"] / 7),
+            "departures": round(vals["departures_7d"] / 7),
+        }
+
+    # ── 4. Build unified daily series (API overrides estimates) ──────────────
+    unified_daily = {}
+    unified_daily.update(estimated_daily)
+    unified_daily.update(api_daily)  # actual data wins
+
+    # ── 5. Compute 7d rolling sums ──────────────────────────────────────────
+    all_dates = sorted(set(d for d, _ in unified_daily.keys()))
 
     with open(MERGED_CSV, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["date", "airport", "arrivals_7d", "departures_7d", "total_7d", "source"])
         for airport in AIRPORTS:
             for date_str in all_dates:
-                key = (date_str, airport)
-                if key in backfill:
-                    d = backfill[key]
-                    writer.writerow([date_str, airport, d["arrivals_7d"], d["departures_7d"],
-                                     d["arrivals_7d"] + d["departures_7d"], "chart_extract"])
-                elif key in daily:
-                    dt = datetime.strptime(date_str, "%Y-%m-%d")
-                    arr_7d, dep_7d = 0, 0
-                    for i in range(7):
-                        lb = (dt - timedelta(days=i)).strftime("%Y-%m-%d")
-                        lb_key = (lb, airport)
-                        if lb_key in daily:
-                            arr_7d += daily[lb_key]["arrivals"]
-                            dep_7d += daily[lb_key]["departures"]
-                    writer.writerow([date_str, airport, arr_7d, dep_7d, arr_7d + dep_7d, "api_7d"])
-    log(f"Merged 7d totals written")
+                if (date_str, airport) not in unified_daily:
+                    continue
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+                arr_7d, dep_7d = 0, 0
+                days_found = 0
+                for i in range(7):
+                    lb = (dt - timedelta(days=i)).strftime("%Y-%m-%d")
+                    lb_key = (lb, airport)
+                    if lb_key in unified_daily:
+                        arr_7d += unified_daily[lb_key]["arrivals"]
+                        dep_7d += unified_daily[lb_key]["departures"]
+                        days_found += 1
+
+                # Only write if we have at least 4 of the 7 lookback days
+                if days_found >= 4:
+                    # Tag source based on whether this date has actual API data
+                    source = "api_7d" if (date_str, airport) in api_daily else "chart_extract"
+                    writer.writerow([date_str, airport, arr_7d, dep_7d, arr_7d + dep_7d, source])
+    log(f"Merged 7d totals written ({len(all_dates)} dates)")
 
 
 # ── Chart ───────────────────────────────────────────────────────────────────
@@ -190,13 +215,14 @@ def build_chart():
     fig.suptitle("Air Traffic Is Rebounding", fontsize=16, fontweight="bold",
                  x=0.12, ha="left", y=0.97)
 
-    for ax, airport, title, ymax in [
-        (ax1, "OMDB", "FLIGHTS THROUGH\nDUBAI INTERNATIONAL AIRPORT*", 1600),
-        (ax2, "OMAA", "FLIGHTS THROUGH\nABU DHABI INTERNATIONAL AIRPORT*", 700),
+    for ax, airport, title in [
+        (ax1, "OMDB", "FLIGHTS THROUGH\nDUBAI INTERNATIONAL AIRPORT*"),
+        (ax2, "OMAA", "FLIGHTS THROUGH\nABU DHABI INTERNATIONAL AIRPORT*"),
     ]:
         dates = sorted(data[airport].keys())
         arrivals = [data[airport][d]["arrivals"] for d in dates]
         departures = [data[airport][d]["departures"] for d in dates]
+        totals = [a + d for a, d in zip(arrivals, departures)]
 
         ax.bar(dates, arrivals, width=0.8, color="#1a4d3e", label="ARRIVALS", zorder=2)
         ax.bar(dates, departures, width=0.8, bottom=arrivals, color="#4da688",
@@ -204,12 +230,15 @@ def build_chart():
         ax.axhline(y=BASELINES[airport], color="#cc3333", linewidth=1.5,
                    linestyle="--", label="PRE-CONFLICT BASELINE", zorder=3)
 
+        # Auto-scale y-axis with 20% headroom
+        peak = max(max(totals), BASELINES[airport])
+        ymax = int(peak * 1.2 / 100 + 1) * 100  # round up to nearest 100
         ax.set_title(title, fontsize=9, fontweight="bold", loc="left", pad=8)
         ax.set_ylim(0, ymax)
         ax.set_xlim(min(dates) - timedelta(hours=12), max(dates) + timedelta(hours=12))
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%d"))
         ax.xaxis.set_major_locator(mdates.DayLocator(interval=2))
-        ax.yaxis.set_major_locator(plt.MultipleLocator(400 if ymax > 1000 else 200))
+        ax.yaxis.set_major_locator(plt.MultipleLocator(200 if ymax <= 1200 else 400))
         ax.tick_params(axis="both", labelsize=8)
         ax.set_ylabel("#", fontsize=9)
         ax.grid(axis="y", alpha=0.3, zorder=0)
