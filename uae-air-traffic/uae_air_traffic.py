@@ -24,7 +24,7 @@ BASE_URL        = "https://aeroapi.flightaware.com/aeroapi"
 AIRPORTS        = ["OMDB", "OMAA"]
 AIRPORT_NAMES   = {"OMDB": "Dubai (DXB)", "OMAA": "Abu Dhabi (AUH)"}
 DIRECTIONS      = ["arrivals", "departures"]
-API_DELAY       = 10  # generous spacing — this only runs once/day
+API_DELAY       = 20  # free tier needs ~20s between calls
 BASELINES       = {"OMDB": 850, "OMAA": 150}  # 7-day pre-conflict totals (API-calibrated)
 
 # Paths (relative to script location)

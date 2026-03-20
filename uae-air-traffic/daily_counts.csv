@@ -1,9 +1,9 @@
 date,airport,arrivals,departures,total,source
-2026-03-16,OMAA,97,93,190,api
 2026-03-16,OMDB,55,54,109,api
-2026-03-17,OMDB,8,7,15,manual_est
-2026-03-17,OMAA,100,98,198,manual_est
-2026-03-18,OMDB,10,9,19,manual_est
-2026-03-18,OMAA,105,103,208,manual_est
-2026-03-19,OMDB,12,10,22,manual_est
-2026-03-19,OMAA,110,108,218,manual_est
+2026-03-16,OMAA,97,93,190,api
+2026-03-17,OMDB,10,8,18,est_drone_shutdown
+2026-03-17,OMAA,84,92,176,api_partial
+2026-03-18,OMDB,14,12,26,est_gradual_resume
+2026-03-18,OMAA,85,94,179,api
+2026-03-19,OMDB,18,15,33,est_gradual_resume
+2026-03-19,OMAA,88,97,185,est_from_trend

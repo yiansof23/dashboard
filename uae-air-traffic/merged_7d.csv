@@ -23,9 +23,9 @@ date,airport,arrivals_7d,departures_7d,total_7d,source
 2026-03-14,OMDB,32,32,64,chart_extract
 2026-03-15,OMDB,34,34,68,chart_extract
 2026-03-16,OMDB,85,84,169,api_7d
-2026-03-17,OMDB,89,87,176,api_7d
-2026-03-18,OMDB,95,92,187,api_7d
-2026-03-19,OMDB,102,97,199,api_7d
+2026-03-17,OMDB,91,88,179,api_7d
+2026-03-18,OMDB,101,96,197,api_7d
+2026-03-19,OMDB,114,106,220,api_7d
 2026-02-21,OMAA,44,43,87,chart_extract
 2026-02-22,OMAA,55,53,108,chart_extract
 2026-02-23,OMAA,66,63,129,chart_extract
@@ -50,6 +50,6 @@ date,airport,arrivals_7d,departures_7d,total_7d,source
 2026-03-14,OMAA,94,91,185,chart_extract
 2026-03-15,OMAA,116,113,229,chart_extract
 2026-03-16,OMAA,207,200,407,api_7d
-2026-03-17,OMAA,298,289,587,api_7d
-2026-03-18,OMAA,390,379,769,api_7d
-2026-03-19,OMAA,483,471,954,api_7d
+2026-03-17,OMAA,282,283,565,api_7d
+2026-03-18,OMAA,354,364,718,api_7d
+2026-03-19,OMAA,425,445,870,api_7d
