@@ -1,3 +1,3 @@
-date,airport,arrivals,departures,total,source
-2026-03-16,OMDB,55,54,109,api
-2026-03-16,OMAA,97,93,190,api
+date,airport,scheduled_arrivals,scheduled_departures,total_scheduled,departed,enroute,timestamp_utc
+2026-03-26,OMDB,753,639,1392,72,142,2026-03-26T09:53:16Z
+2026-03-26,OMAA,324,309,633,28,81,2026-03-26T09:53:19Z
